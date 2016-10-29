@@ -59,25 +59,26 @@ def part1():
     open("norm_row.txt", "w").write(str(cv2.norm(row4, scaled_up)))
 
 
-# filters the image with an ideal low frequency filter
+# filters an image row with an ideal low frequency filter
 def filter_low_freq(x, m, freq):
-    def gen_filter():
-        fltr = np.zeros((m + 1, 3))
-        for i in range(0, m + 1):
-            d = i - m / 2
-            for c in range(0, 3):
-                fltr[i][c] = 0.5 * (1 - cos(2 * pi * i / m)) * sin(freq * d) / (pi * d) if d != 0 else np.nan
-        return fltr
+    size = len(x)
+    fltr = np.zeros(size)
 
-    f = gen_filter()
-    n = len(x)
-    res = np.zeros((n, 3))
-    for n in range(0, n):
-        for k in range(max(0, n - m), n):
-            if np.isnan(f[n - k][0]):
-                res[n] = x[k]
-                break
-            res[n] += x[k] * f[n - k]
+    for n in range(0, m):
+        d = n - m / 2
+        w = 0.3 - 0.5 * cos(2 * pi * n / m)
+        if d != 0:
+            fltr[n] = sin(freq * d) / (pi * d) * w
+
+    res = np.zeros((size, 3), dtype="u1")
+
+    for n in range(0, size):
+        cell = np.zeros(3)
+        for k in range(0, m):
+            for i in range(0, 3):
+                cell[i] += fltr[k] * x[n - k][i]
+        res[n] = np.array(cell, dtype="u1")
+
     return res
 
 
@@ -88,7 +89,7 @@ def part2():
     scaled_up = scale(scaled_down, 1 / 8, 32)
     save_plot(scaled_down, "fig3_1.png")
     save_plot(scaled_up, "fig3_2.png")
-    open("norm_row_filt.txt", "w").write(str(cv2.norm(row4, scaled_up)))
+    open("norm_row_filt.txt", "w").write(str(cv2.norm(scaled_up, filtered)))
 
 
 def part3():
@@ -106,7 +107,7 @@ def part3():
 
     save_map(scaled_down, "fig5_1.png")
     save_map(scaled_up, "fig5_2.png")
-    row_norms = [cv2.norm(scaled_up[i], img[i]) for i in range(0, 32)]
+    row_norms = [cv2.norm(scaled_up[i], filtered[i]) for i in range(0, 32)]
     open("norm_image_filt.txt", "w").write(str(cv2.norm(np.array(row_norms, dtype="u1"))))
 
 
