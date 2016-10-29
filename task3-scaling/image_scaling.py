@@ -59,23 +59,31 @@ def part1():
     open("norm_row.txt", "w").write(str(cv2.norm(row4, scaled_up)))
 
 
-# generates an ideal low frequency filter with given frequency
-def low_freq_filter(freq, m):
-    result = np.zeros((m, 3))
-    for n in range(0, m):
-        k = n - m / 2
-        w = 0.5 - 0.5 * cos(2 * pi * n / m) if 0 <= n <= m else 0
-        for i in range(0, 3):
-            result[n][i] = sin(freq * k) / (pi * k) * w if k != 0 else 0
-    return result
+# filters the image with an ideal low frequency filter
+def filter_low_freq(x, m, freq):
+    def gen_filter():
+        fltr = np.zeros((m + 1, 3))
+        for i in range(0, m + 1):
+            d = i - m / 2
+            for c in range(0, 3):
+                fltr[i][c] = 0.5 * (1 - cos(2 * pi * i / m)) * sin(freq * d) / (pi * d) if d != 0 else np.nan
+        return fltr
+
+    f = gen_filter()
+    n = len(x)
+    res = np.zeros((n, 3))
+    for n in range(0, n):
+        for k in range(max(0, n - m), n):
+            if np.isnan(f[n - k][0]):
+                res[n] = x[k]
+                break
+            res[n] += x[k] * f[n - k]
+    return res
 
 
 # scale an image row (lossless)
 def part2():
-    fft1 = abs(np.fft.fft(row4))
-    fft2 = abs(np.fft.fft(low_freq_filter(pi / 4, len(row4))))
-    filtered = abs(np.fft.ifft(fft1 * fft2)).astype(int)
-
+    filtered = filter_low_freq(row4, 4, pi / 4)
     scaled_down = scale(filtered, 1 / 32, 8)
     scaled_up = scale(scaled_down, 1 / 8, 32)
     save_plot(scaled_down, "fig3_1.png")
@@ -92,13 +100,7 @@ def part3():
     row_norms = [cv2.norm(scaled_up[i], img[i]) for i in range(0, 32)]
     open("norm_image.txt", "w").write(str(cv2.norm(np.array(row_norms, dtype="u1"))))
 
-    fltr = low_freq_filter(pi / 4, len(img[0]))
-    fft2 = abs(np.fft.fft(fltr))
-    filtered = [None] * 32
-    for i in range(0, 32):
-        fft1 = abs(np.fft.fft(img[i]))
-        filtered[i] = abs(np.fft.ifft(fft1 * fft2)).astype(int)
-
+    filtered = [filter_low_freq(row, 4, pi / 4) for row in img]
     scaled_down = [scale(row, 1 / 32, 8) for row in filtered]
     scaled_up = [scale(row, 1 / 8, 32) for row in scaled_down]
 
