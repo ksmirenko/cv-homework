@@ -1,5 +1,7 @@
 # Test results
 
+Note: the same data set was used in all test cases.
+
 ## Case 1
 
 Used `opencv_traincascade` with parameters:
