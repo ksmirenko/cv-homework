@@ -1,1 +1,4 @@
-data/
+/data/**
+!/data/cascade/
+/data/cascade/**
+!/data/cascade/cascade.xml
