@@ -4,10 +4,10 @@ opencv_traincascade \
     -data cascade/ \
     -vec samples.vec \
     -bg triangles.dat \
-    -numStages 10 \
+    -numStages 11 \
     -minhitrate 0.999 \
     -maxFalseAlarmRate 0.5 \
-    -numPos 600 \
+    -numPos 620 \
     -numNeg 800 \
     -w 20 \
     -h 20 \
